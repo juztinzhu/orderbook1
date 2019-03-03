@@ -1,10 +1,10 @@
-FLAGS = -m64 --std=c++11
+FLAGS = -m64 --std=c++11 -g
 HEADERS = $(wildcard *.h)
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:%.cpp=%.o)
 
 all: $(OBJS)
-	g++ $(FLAGS) -o test $(OBJS)
+	g++ $(FLAGS) -o order $(OBJS)
 
 
 $(OBJS): %.o: %.cpp $(HEADERS)
@@ -14,6 +14,9 @@ $(OBJS): %.o: %.cpp $(HEADERS)
 t: $(OBJS)
 	echo $(OBJS)
 
+
+unit_test: $(SRCS) test/test.cpp $(HEADERS)
+	g++ OrderBookManager.cpp  -L./test -I./test -pthread test/test.cpp -lgtest -lgmock -o unit_test ${FLAGS}
+
 clean:
-	rm test
-	rm *.o
+	rm -f order unit_test *.o

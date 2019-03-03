@@ -1,43 +1,27 @@
 
 #include "OrderBookManager.h"
 
-
-OrderBookManager::OrderBookManager()
-{
-	_myfile.open("Trades.txt", std::ios::out);
-	if (!_myfile.is_open())
-	{
-		std::cout << "Trades.txt cannot be opened" << std::endl;
-	}
-}
-
-
-OrderBookManager::~OrderBookManager()
-{
-	_myfile.close();
-}
-
 void OrderBookManager::OnBuyOrder(const Order &order)
 {
-    Order *front = this->sellList.Front();
-    int orderQuantity = Order.Quantity;
-    while (front)
+    Order *top = this->sellList.Top();
+    int orderQuantity = order.Quantity;
+    while (top && orderQuantity>0)
     {
-        if (front->Price <= order.Price)
+        if (top->Price <= order.Price)
         {
-            int quantityDiff = orderQuantity - front->Quantity;
-            int quantity = quantityDiff > 0 ? orderQuantity : front->Quantity;
+            int quantityDiff = orderQuantity - top->Quantity;
+            int quantity = quantityDiff < 0 ? orderQuantity : top->Quantity;
             if (quantityDiff < 0)
             {
-                front.Quantity -= quantityDiff;
-                this.ReportTrade(order.Account, front.Account, front->Price, quantity);
-                break;
+                top->Quantity -= quantity;
+                reporter->ReportTrade(order.Account, top->Account, top->Price, quantity);
+                return;
             }
             else
             {
-                front = this->sellList.Next();
                 orderQuantity -= quantity;
-                this.ReportTrade(order.Account, front.Account, front->Price, quantity);
+                reporter->ReportTrade(order.Account, top->Account, top->Price, quantity);
+                top = this->sellList.Pop();
                 continue;
             }
         }
@@ -53,25 +37,25 @@ void OrderBookManager::OnBuyOrder(const Order &order)
 
 void OrderBookManager::OnSellOrder(const Order& order)
 {
-    Order *front = this->buyList.Front();
-    int orderQuantity = Order.Quantity;
-    while (front)
+    Order *top = this->buyList.Top();
+    int orderQuantity = order.Quantity;
+    while (top && orderQuantity>0)
     {
-        if (front->Price >= order.Price)
+        if (top->Price >= order.Price)
         {
-            int quantityDiff = orderQuantity - front->Quantity;
-            int quantity = quantityDiff > 0 ? orderQuantity : front->Quantity;
+            int quantityDiff = orderQuantity - top->Quantity;
+            int quantity = quantityDiff < 0 ? orderQuantity : top->Quantity;
             if (quantityDiff < 0)
             {
-                front.Quantity -= quantityDiff;
-                this.ReportTrade(order.Account, front.Account, front->Price, quantity);
-                break;
+                top->Quantity -= quantity;
+                reporter->ReportTrade(order.Account, top->Account, top->Price, quantity);
+                return;
             }
             else
             {
-                front = this->buyList.Next();
                 orderQuantity -= quantity;
-                this.ReportTrade(order.Account, front.Account, front->Price, quantity);
+                reporter->ReportTrade(order.Account, top->Account, top->Price, quantity);
+                top = this->buyList.Pop();
                 continue;
             }
         }
@@ -98,8 +82,3 @@ void OrderBookManager::OnNewOrder(const Order& order)
 }
 
 
-void OrderBookManager::ReportTrade(const std::string & account1, const std::string & account2, const int & price, const int & size)
-{
-	_myfile << account1 << "," << account2 << "," << size << "," << price << std::endl;
-	_myfile.flush();
-}

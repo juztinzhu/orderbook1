@@ -1,9 +1,22 @@
 #include "CSVIterator.h"
 #include "Definitions.h"
 #include "OrderBookManager.h"
+
+
+class TradeReporter:public ITradeReporter
+{
+private:
+    std::ofstream _myfile;
+public:
+    TradeReporter();
+    virtual ~TradeReporter();
+    virtual void ReportTrade(const std::string & account1, const std::string & account2, const int& price, const int& Size);
+};
+
 void LoadOrders()
 {
-	OrderBookManager orderBook;
+	TradeReporter reporter;
+	OrderBookManager orderBook(&reporter);
 	std::ifstream file("Orders.txt");
 	if (!file.is_open())
 	{
@@ -21,6 +34,29 @@ void LoadOrders()
 		orderBook.OnNewOrder(newOrder);
 	}
 }
+
+void TradeReporter::ReportTrade(const std::string & account1, const std::string & account2, const int & price, const int & size)
+{
+	_myfile << account1 << "," << account2 << "," << size << "," << price << std::endl;
+	_myfile.flush();
+}
+
+
+TradeReporter::TradeReporter()
+{
+	_myfile.open("Trades.txt", std::ios::out);
+	if (!_myfile.is_open())
+	{
+		std::cout << "Trades.txt cannot be opened" << std::endl;
+	}
+}
+
+
+TradeReporter::~TradeReporter()
+{
+	_myfile.close();
+}
+
 
 int main()
 {
